@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQUAD ADAMANTIUM - V4</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        v4: {
+                            black: '#000000',
+                            dark: 'rgba(12, 4, 4, 0.72)',
+                            border: 'rgba(255, 30, 30, 0.18)',
+                            red: '#FF1A1A',
+                            redhover: '#FF3131',
+                            neon: '#FF0000',
+                            text: '#f5f5f5',
+                            muted: '#8a8a8a'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --neon-red: #FF1A1A;
+            --neon-glow: rgba(255, 0, 0, 0.55);
+            --glass-bg: rgba(8, 2, 2, 0.55);
+            --glass-border: rgba(255, 30, 30, 0.22);
+        }
+
+        body {
+            background-color: #000;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .bg-scene {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .bg-scene__image {
+            position: absolute;
+            inset: 0;
+            background: url('assets/bg-racing.png') right center / cover no-repeat;
+            opacity: 0.38;
+            filter: saturate(1.3) contrast(1.15);
+        }
+
+        .bg-scene__fade {
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(105deg, #000 0%, #000 38%, rgba(0,0,0,0.92) 55%, rgba(0,0,0,0.45) 78%, rgba(0,0,0,0.15) 100%),
+                radial-gradient(ellipse 80% 60% at 85% 70%, rgba(255,0,0,0.18) 0%, transparent 65%),
+                radial-gradient(ellipse 50% 40% at 10% 20%, rgba(255,0,0,0.06) 0%, transparent 60%);
+        }
+
+        .bg-scene__grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,30,30,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,30,30,0.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            mask-image: linear-gradient(to bottom, black 0%, transparent 85%);
+        }
+
+        .bg-scene__scanline {
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 3px,
+                rgba(0,0,0,0.04) 3px,
+                rgba(0,0,0,0.04) 4px
+            );
+            opacity: 0.5;
+        }
+
+        #main-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 20px var(--neon-glow), 0 0 40px rgba(255,0,0,0.25);
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+
+        .card-item {
+            background: rgba(10, 3, 3, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 30, 30, 0.15);
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-item::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,0,0,0.5), transparent);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .card-item:hover {
+            border-color: rgba(255, 26, 26, 0.65);
+            background: rgba(20, 5, 5, 0.75);
+            box-shadow: 0 0 24px rgba(255,0,0,0.15), 0 0 48px rgba(255,0,0,0.06), inset 0 0 20px rgba(255,0,0,0.03);
+            transform: translateY(-2px);
+        }
+
+        .card-item:hover::before {
+            opacity: 1;
+        }
+
+        .btn-neon {
+            background: rgba(12, 4, 4, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 30, 30, 0.25);
+            transition: all 0.2s ease;
+        }
+
+        .btn-neon:hover {
+            border-color: var(--neon-red);
+            box-shadow: 0 0 18px rgba(255,0,0,0.35), inset 0 0 12px rgba(255,0,0,0.08);
+        }
+
+        .btn-neon-primary {
+            background: linear-gradient(135deg, #cc0000 0%, #ff1a1a 50%, #cc0000 100%);
+            border: 1px solid #ff4444;
+            box-shadow: 0 0 20px rgba(255,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+            transition: all 0.2s ease;
+        }
+
+        .btn-neon-primary:hover {
+            box-shadow: 0 0 30px rgba(255,0,0,0.6), 0 0 60px rgba(255,0,0,0.2);
+            transform: translateY(-1px);
+        }
+
+        .view-toggle-btn.active {
+            background: linear-gradient(135deg, #aa0000, #ff1a1a);
+            border-color: #ff3333 !important;
+            color: #fff;
+            box-shadow: 0 0 16px rgba(255,0,0,0.45), inset 0 0 10px rgba(255,255,255,0.1);
+        }
+
+        .status-dot {
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        .status-dot--red { color: #ff1a1a; background-color: #ff1a1a; box-shadow: 0 0 10px #ff0000; }
+        .status-dot--green { color: #22c55e; background-color: #22c55e; box-shadow: 0 0 10px #22c55e; }
+        .status-dot--yellow { color: #eab308; background-color: #eab308; box-shadow: 0 0 10px #eab308; }
+
+        .header-line {
+            background: linear-gradient(90deg, transparent, rgba(255,0,0,0.6), transparent);
+            height: 1px;
+        }
+
+        .lista-table th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+        }
+
+        .lista-row {
+            transition: all 0.2s ease;
+        }
+
+        .lista-row:hover {
+            background: rgba(255, 0, 0, 0.06);
+            box-shadow: inset 0 0 20px rgba(255,0,0,0.04);
+        }
+
+        .lista-row:hover td:first-child {
+            border-left-color: #ff1a1a;
+            box-shadow: -4px 0 12px rgba(255,0,0,0.3);
+        }
+
+        .modal-glass {
+            background: rgba(6, 2, 2, 0.88);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 30, 30, 0.25);
+            box-shadow: 0 0 60px rgba(255,0,0,0.12), 0 25px 80px rgba(0,0,0,0.8);
+        }
+
+        .platform-card {
+            background: rgba(12, 4, 4, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 30, 30, 0.18);
+            transition: all 0.25s ease;
+        }
+
+        .platform-card:hover {
+            border-color: rgba(255, 26, 26, 0.7);
+            box-shadow: 0 0 30px rgba(255,0,0,0.2), inset 0 0 20px rgba(255,0,0,0.05);
+            transform: scale(1.02);
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,30,30,0.35); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ff1a1a; }
+
+        input[type="number"] { -moz-appearance: textfield; }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        input:focus, select:focus {
+            box-shadow: 0 0 12px rgba(255,0,0,0.25);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-v4-text font-sans p-4 md:p-8">
+
+    <div class="bg-scene" aria-hidden="true">
+        <div class="bg-scene__image"></div>
+        <div class="bg-scene__fade"></div>
+        <div class="bg-scene__grid"></div>
+        <div class="bg-scene__scanline"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto" id="main-container">
+        
+        <header id="main-header" class="mb-10 pb-6">
+            <div class="flex flex-col md:flex-row justify-between items-end">
+                <div>
+                    <p class="text-[10px] text-v4-red font-bold uppercase tracking-[0.4em] mb-2 neon-text">Painel de Operações</p>
+                    <h1 class="text-4xl md:text-6xl font-display font-black text-white tracking-tighter uppercase leading-none">
+                        SQUAD <span class="text-v4-red neon-text">ADAMANTIUM</span>
+                    </h1>
+                    <p class="text-xs text-v4-muted mt-4 font-bold uppercase tracking-widest flex items-center gap-2">
+                        <span id="sync-status" class="w-2.5 h-2.5 rounded-full status-dot status-dot--yellow"></span>
+                        <span id="sync-text">Conectando...</span>
+                    </p>
+                </div>
+                
+                <div class="flex flex-wrap gap-4 mt-6 md:mt-0 items-center">
+                    <div class="flex glass-panel rounded-sm overflow-hidden">
+                        <button id="btn-view-cards" onclick="alternarVisualizacao('cards')" class="view-toggle-btn active btn-neon flex items-center gap-2 px-4 py-3 border-r border-v4-border text-white font-display font-bold transition-all text-xs uppercase tracking-widest" title="Visualização em cards">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                            Cards
+                        </button>
+                        <button id="btn-view-lista" onclick="alternarVisualizacao('lista')" class="view-toggle-btn btn-neon flex items-center gap-2 px-4 py-3 text-white font-display font-bold transition-all text-xs uppercase tracking-widest" title="Visualização em planilha">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                            Planilha
+                        </button>
+                    </div>
+                    <button onclick="abrirConfig()" class="btn-neon flex items-center gap-2 px-6 py-3 text-white font-display font-bold transition-all text-xs uppercase tracking-widest rounded-sm">
+                        <svg class="w-4 h-4 text-v4-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Configurar Dados
+                    </button>
+                </div>
+            </div>
+            <div class="header-line w-full mt-6"></div>
+        </header>
+
+        <div id="clientes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+        <div id="clientes-lista" class="hidden overflow-x-auto glass-panel rounded-sm"></div>
+    </div>
+
+    <div id="config-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4 transition-opacity opacity-0">
+        <div class="modal-glass w-full max-w-7xl h-[95vh] relative flex flex-col rounded-sm">
+            <div class="p-6 border-b border-v4-border flex justify-between items-center">
+                <div class="flex items-center gap-6">
+                    <h2 class="text-2xl font-display font-black text-white uppercase tracking-tight">
+                        Configuração de <span class="text-v4-red neon-text">Dados</span>
+                    </h2>
+                    <div class="h-6 w-[2px] bg-v4-border"></div>
+                    
+                    <select id="config-dia-selector" onchange="mudarDiaConfig(this.value)" class="btn-neon text-white text-sm uppercase tracking-widest font-bold p-2 focus:outline-none focus:border-v4-red cursor-pointer rounded-sm">
+                        <!-- Será preenchido pelo JS automaticamente com as datas reais -->
+                    </select>
+                </div>
+
+                <button onclick="fecharConfig()" class="text-v4-muted hover:text-v4-red transition-colors">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1" id="config-form-container"></div>
+            
+            <div class="p-6 border-t border-v4-border flex justify-end gap-4">
+                <button onclick="zerarDados()" class="btn-neon px-8 py-4 text-v4-red hover:text-white border-v4-red/50 hover:border-v4-red font-display font-bold uppercase tracking-widest rounded-sm transition-colors">
+                    Zerar Histórico
+                </button>
+                <button onclick="salvarConfig()" class="btn-neon-primary px-10 py-4 text-white font-display font-bold uppercase tracking-widest rounded-sm">
+                    Salvar Alterações
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[50] hidden flex items-center justify-center p-4 transition-opacity opacity-0">
+        <div id="modal-container" class="modal-glass w-full max-w-5xl relative transform scale-95 transition-transform duration-200 flex flex-col max-h-[95vh] rounded-sm">
+            
+            <div class="p-6 border-b border-v4-border flex justify-between items-center">
+                <div class="flex items-center gap-6">
+                    <h2 id="modal-titulo" class="text-2xl font-display font-black text-white uppercase tracking-tight">Cliente</h2>
+                    <div class="h-6 w-[2px] bg-v4-border"></div>
+                    <span id="modal-meta-alvo" class="text-v4-red text-xs font-bold tracking-widest uppercase neon-text">Meta CPL: R$ 0.00</span>
+                </div>
+                <button onclick="fecharModal()" class="text-v4-muted hover:text-v4-red transition-colors p-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div id="view-selecao" class="p-8 md:p-12 overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div onclick="abrirGrafico('google')" class="platform-card p-10 flex flex-col items-center justify-center cursor-pointer rounded-sm">
+                        <h3 class="text-2xl font-display font-black text-white uppercase tracking-wider mb-2">Google Ads</h3>
+                        <p class="text-xs text-v4-muted font-bold uppercase tracking-[0.2em]">CPL x CPC (Mês)</p>
+                    </div>
+
+                    <div onclick="abrirGrafico('meta')" class="platform-card p-10 flex flex-col items-center justify-center cursor-pointer rounded-sm">
+                        <h3 class="text-2xl font-display font-black text-white uppercase tracking-wider mb-2">Meta Ads</h3>
+                        <p class="text-xs text-v4-muted font-bold uppercase tracking-[0.2em]">CPL x CPM (Mês)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-grafico" class="hidden flex-col h-full overflow-y-auto">
+                <div class="p-4 border-b border-v4-border flex items-center justify-between">
+                    <button onclick="voltarSelecao()" class="text-v4-muted hover:text-v4-red font-bold uppercase tracking-widest text-xs transition-colors">
+                        « Voltar
+                    </button>
+                    <div id="badge-plataforma" class="px-3 py-1 bg-v4-red/20 border border-v4-red/40 text-v4-red text-xs uppercase tracking-[0.2em] font-bold rounded-sm">Plataforma</div>
+                </div>
+                
+                <div class="p-6 flex-1">
+                    <div class="grid grid-cols-2 gap-6 mb-6">
+                        <div class="glass-panel p-5 rounded-sm">
+                            <p class="text-xs text-v4-muted font-bold uppercase tracking-[0.2em] mb-2">Média CPL (Período)</p>
+                            <p id="metrica-cpl" class="text-4xl font-display font-black text-white neon-text"></p>
+                        </div>
+                        <div class="glass-panel p-5 rounded-sm">
+                            <p id="label-inflacao" class="text-xs text-v4-muted font-bold uppercase tracking-[0.2em] mb-2">Média Custo Base</p>
+                            <p id="metrica-inflacao" class="text-4xl font-display font-black text-white"></p>
+                        </div>
+                    </div>
+
+                    <div id="box-diagnostico" class="mb-6 p-6 flex items-start gap-4 rounded-sm border">
+                        <div id="icone-diagnostico" class="mt-1"></div>
+                        <div>
+                            <h4 id="titulo-diagnostico" class="font-display font-black uppercase tracking-wider text-sm mb-2">Diagnóstico do Período</h4>
+                            <p id="texto-diagnostico" class="text-sm font-sans text-v4-text font-medium leading-relaxed opacity-90"></p>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-sm">
+                        <div id="grafico-container" class="w-full h-[300px]"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DB_URL = 'https://cpl-v4-default-rtdb.firebaseio.com/painel-cpl.json';
+        const periodos = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Semana 5'];
+        
+        function criarHistoricoBase(gCPL, gCPC, mCPL, mCPM) {
+            let hist = {};
+            periodos.forEach(p => {
+                hist[p] = { gCPL, gCPC, mCPL, mCPM };
+            });
+            return hist;
+        }
+        
+        const defaultData = [
+            { id: "c13", nome: "BPO", alvoCPL: 12.00, historico: criarHistoricoBase(9.99, 1.15, 7.50, 27.00) },
+            { id: "c1", nome: "Carlessi", alvoCPL: 14.00, historico: criarHistoricoBase(15.50, 1.20, 12.30, 45.00) },
+            { id: "c12", nome: "Distrel", alvoCPL: 12.00, historico: criarHistoricoBase(9.99, 1.08, 7.50, 25.50) },
+            { id: "c10", nome: "JR Painéis", alvoCPL: 12.00, historico: criarHistoricoBase(9.99, 1.10, 7.50, 23.00) },
+            { id: "c2", nome: "Lynter", alvoCPL: 20.00, historico: criarHistoricoBase(22.90, 2.15, 8.45, 30.20) },
+            { id: "c14", nome: "Melhores Marcas", alvoCPL: 15.00, historico: criarHistoricoBase(10.00, 1.50, 12.00, 30.00) },
+            { id: "c6", nome: "Mtm Eletro", alvoCPL: 10.00, historico: criarHistoricoBase(9.99, 1.15, 7.50, 28.00) },
+            { id: "c11", nome: "Nassif", alvoCPL: 12.00, historico: criarHistoricoBase(9.99, 1.12, 7.50, 26.00) },
+            { id: "c7", nome: "Pjmed", alvoCPL: 6.00, historico: criarHistoricoBase(9.99, 1.20, 7.50, 24.00) },
+            { id: "c8", nome: "Power View", alvoCPL: 8.00, historico: criarHistoricoBase(9.99, 3.50, 7.50, 85.00) },
+            { id: "c9", nome: "QUALITY", alvoCPL: 12.00, historico: criarHistoricoBase(9.99, 1.05, 7.50, 22.00) },
+            { id: "c3", nome: "Safetycar", alvoCPL: 8.00, historico: criarHistoricoBase(5.30, 0.85, 3.80, 15.50) },
+            { id: "c4", nome: "T&M", alvoCPL: 16.00, historico: criarHistoricoBase(18.20, 1.90, 15.00, 55.00) },
+            { id: "c5", nome: "WooHoo", alvoCPL: 12.00, historico: criarHistoricoBase(9.99, 1.10, 7.50, 25.00) }
+        ];
+
+        let dadosAtuais = [];
+        let clienteSelecionado = null;
+        let chartInstance = null;
+        let diaConfigSelecionado = 'Semana 1';
+        let modoVisualizacao = localStorage.getItem('cpl-view-mode') || 'cards';
+
+        function formatarMoeda(valor) {
+            return `R$ ${Number(valor).toFixed(2)}`;
+        }
+
+        function calcularMediaSemana(cliente, isGoogle, isCPL) {
+            let soma = 0;
+            let periodosPreenchidos = 0;
+            
+            periodos.forEach(p => {
+                let valor = isGoogle ? 
+                    (isCPL ? cliente.historico[p].gCPL : cliente.historico[p].gCPC) : 
+                    (isCPL ? cliente.historico[p].mCPL : cliente.historico[p].mCPM);
+                    
+                if (valor > 0) {
+                    soma += valor;
+                    periodosPreenchidos++;
+                }
+            });
+            
+            return periodosPreenchidos > 0 ? (soma / periodosPreenchidos) : 0;
+        }
+
+        function obterStatusCliente(cliente) {
+            const mediaG_CPL = calcularMediaSemana(cliente, true, true);
+            const mediaM_CPL = calcularMediaSemana(cliente, false, true);
+            const piorCpl = Math.max(mediaG_CPL, mediaM_CPL);
+            return {
+                mediaG_CPL,
+                mediaG_CPC: calcularMediaSemana(cliente, true, false),
+                mediaM_CPL,
+                mediaM_CPM: calcularMediaSemana(cliente, false, false),
+                estourouMeta: piorCpl > cliente.alvoCPL
+            };
+        }
+
+        function alternarVisualizacao(modo) {
+            modoVisualizacao = modo;
+            localStorage.setItem('cpl-view-mode', modo);
+
+            document.getElementById('btn-view-cards').classList.toggle('active', modo === 'cards');
+            document.getElementById('btn-view-lista').classList.toggle('active', modo === 'lista');
+
+            document.getElementById('clientes-grid').classList.toggle('hidden', modo !== 'cards');
+            document.getElementById('clientes-lista').classList.toggle('hidden', modo !== 'lista');
+
+            if (dadosAtuais.length) renderizarClientes(dadosAtuais);
+        }
+
+        async function buscarDados() {
+            try {
+                const res = await fetch(DB_URL);
+                let data = await res.json();
+                
+                if (!data || !data[0]?.historico) {
+                    await salvarNoFirebase(defaultData);
+                } else {
+                    let precisaAtualizarBanco = false;
+                    defaultData.forEach(defaultClient => {
+                        if (!data.find(c => c.id === defaultClient.id)) {
+                            data.push(defaultClient);
+                            precisaAtualizarBanco = true;
+                        }
+                    });
+
+                    data.sort((a, b) => a.nome.localeCompare(b.nome));
+
+                    const jsonAtual = JSON.stringify(dadosAtuais);
+                    const jsonNovo = JSON.stringify(data);
+                    
+                    if (jsonAtual !== jsonNovo) {
+                        dadosAtuais = data;
+                        
+                        if (precisaAtualizarBanco) {
+                            salvarNoFirebase(dadosAtuais); 
+                        }
+
+                        if (document.getElementById('config-overlay').classList.contains('hidden')) {
+                            renderizarClientes(dadosAtuais);
+                        }
+                    }
+                    atualizarStatus(true);
+                }
+            } catch (err) {
+                atualizarStatus(false);
+            }
+        }
+
+        async function salvarNoFirebase(novosDados) {
+            try {
+                novosDados.sort((a, b) => a.nome.localeCompare(b.nome));
+                
+                await fetch(DB_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(novosDados)
+                });
+                dadosAtuais = novosDados;
+                renderizarClientes(novosDados);
+                atualizarStatus(true);
+            } catch (err) {
+                atualizarStatus(false);
+            }
+        }
+
+        function atualizarStatus(ok) {
+            const dot = document.getElementById('sync-status');
+            const txt = document.getElementById('sync-text');
+            if(ok){
+                dot.className = 'w-2.5 h-2.5 rounded-full status-dot status-dot--green';
+                txt.innerText = 'Sincronizado';
+            } else {
+                dot.className = 'w-2.5 h-2.5 rounded-full status-dot status-dot--red';
+                txt.innerText = 'Erro de Conexão';
+            }
+        }
+
+        function abrirConfig() {
+            diaConfigSelecionado = document.getElementById('config-dia-selector').value;
+            renderizarFormConfig();
+            
+            const overlay = document.getElementById('config-overlay');
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+        }
+
+        function renderizarFormConfig() {
+            const container = document.getElementById('config-form-container');
+            container.innerHTML = '';
+            
+            dadosAtuais.forEach((c, i) => {
+                const histDia = c.historico[diaConfigSelecionado];
+                const row = document.createElement('div');
+                row.className = 'glass-panel p-6 mb-4 flex flex-col md:flex-row items-center gap-6 rounded-sm';
+                row.innerHTML = `
+                    <div class="w-full md:w-1/4">
+                        <h3 class="font-display font-bold text-white uppercase text-lg">${c.nome}</h3>
+                    </div>
+                    <div class="w-full md:w-3/4 grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <div>
+                            <label class="text-[10px] uppercase text-v4-muted tracking-widest font-bold mb-2 block">G. CPL (R$)</label>
+                            <input type="number" id="g-cpl-${i}" value="${histDia?.gCPL || 0}" step="0.01" class="w-full bg-black/60 border border-v4-border text-white p-3 focus:outline-none focus:border-v4-red rounded-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase text-v4-muted tracking-widest font-bold mb-2 block">G. CPC (R$)</label>
+                            <input type="number" id="g-cpc-${i}" value="${histDia?.gCPC || 0}" step="0.01" class="w-full bg-black/60 border border-v4-border text-white p-3 focus:outline-none focus:border-v4-red rounded-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase text-v4-muted tracking-widest font-bold mb-2 block">M. CPL (R$)</label>
+                            <input type="number" id="m-cpl-${i}" value="${histDia?.mCPL || 0}" step="0.01" class="w-full bg-black/60 border border-v4-border text-white p-3 focus:outline-none focus:border-v4-red rounded-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase text-v4-muted tracking-widest font-bold mb-2 block">M. CPM (R$)</label>
+                            <input type="number" id="m-cpm-${i}" value="${histDia?.mCPM || 0}" step="0.01" class="w-full bg-black/60 border border-v4-border text-white p-3 focus:outline-none focus:border-v4-red rounded-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase text-v4-red tracking-widest font-bold mb-2 block">Alvo CPL</label>
+                            <input type="number" id="a-cpl-${i}" value="${c.alvoCPL}" step="0.01" class="w-full bg-[#1a0505] border border-v4-red/60 text-white p-3 focus:outline-none focus:border-v4-red rounded-sm">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function salvarValoresFormularioNoJS() {
+            dadosAtuais.forEach((c, i) => {
+                c.historico[diaConfigSelecionado] = {
+                    gCPL: parseFloat(document.getElementById(`g-cpl-${i}`).value) || 0,
+                    gCPC: parseFloat(document.getElementById(`g-cpc-${i}`).value) || 0,
+                    mCPL: parseFloat(document.getElementById(`m-cpl-${i}`).value) || 0,
+                    mCPM: parseFloat(document.getElementById(`m-cpm-${i}`).value) || 0,
+                };
+                c.alvoCPL = parseFloat(document.getElementById(`a-cpl-${i}`).value) || 0;
+            });
+        }
+
+        function mudarDiaConfig(novoDia) {
+            salvarValoresFormularioNoJS();
+            diaConfigSelecionado = novoDia;
+            renderizarFormConfig(); 
+        }
+
+        function salvarConfig() {
+            salvarValoresFormularioNoJS();
+            salvarNoFirebase(dadosAtuais);
+            fecharConfig();
+        }
+
+        function fecharConfig() {
+            const overlay = document.getElementById('config-overlay');
+            overlay.classList.add('opacity-0');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+        }
+
+        function zerarDados() {
+            const confirmacao = confirm("Tem certeza que deseja ZERAR todo o histórico de métricas de todos os períodos? (As metas Alvo CPL serão mantidas)");
+            
+            if (confirmacao) {
+                dadosAtuais.forEach(c => {
+                    periodos.forEach(p => {
+                        c.historico[p] = { gCPL: 0, gCPC: 0, mCPL: 0, mCPM: 0 };
+                    });
+                });
+                
+                renderizarFormConfig();
+                salvarNoFirebase(dadosAtuais);
+                fecharConfig();
+            }
+        }
+
+        function renderizarClientesCards(clientesSubset) {
+            const grid = document.getElementById('clientes-grid');
+            grid.innerHTML = '';
+
+            clientesSubset.forEach((cliente) => {
+                const { estourouMeta } = obterStatusCliente(cliente);
+                const dotClass = estourouMeta ? 'status-dot status-dot--red' : 'status-dot status-dot--green';
+
+                const card = document.createElement('div');
+                card.className = 'card-item relative cursor-pointer flex flex-col justify-center min-h-[130px] p-6 rounded-sm group';
+                card.onclick = () => abrirModal(cliente);
+                card.innerHTML = `
+                    <div class="absolute top-4 right-4">
+                        <div class="w-2.5 h-2.5 rounded-full ${dotClass}"></div>
+                    </div>
+                    <h2 class="text-xl font-display font-bold text-white uppercase tracking-tight group-hover:text-v4-red group-hover:neon-text transition-all">
+                        ${cliente.nome}
+                    </h2>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderizarClientesLista(clientesSubset) {
+            const container = document.getElementById('clientes-lista');
+            container.innerHTML = `
+                <table class="lista-table w-full text-left text-sm min-w-[900px]">
+                    <thead>
+                        <tr class="border-b border-v4-border">
+                            <th class="px-4 py-4 text-[10px] uppercase tracking-widest font-bold text-v4-muted w-10"></th>
+                            <th class="px-4 py-4 text-[10px] uppercase tracking-widest font-bold text-v4-muted">Cliente</th>
+                            <th class="px-4 py-4 text-[10px] uppercase tracking-widest font-bold text-v4-red text-right">Meta CPL</th>
+                            <th class="px-4 py-4 text-[10px] uppercase tracking-widest font-bold text-v4-muted text-right">G. CPL</th>
+                            <th class="px-4 py-4 text-[10px] uppercase tracking-widest font-bold text-v4-muted text-right">G. CPC</th>
+                            <th class="px-4 py-4 text-[10px] uppercase tracking-widest font-bold text-v4-muted text-right">M. CPL</th>
+                            <th class="px-4 py-4 text-[10px] uppercase tracking-widest font-bold text-v4-muted text-right">M. CPM</th>
+                            <th class="px-4 py-4 text-[10px] uppercase tracking-widest font-bold text-v4-muted text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientes-lista-body"></tbody>
+                </table>
+            `;
+
+            const tbody = document.getElementById('clientes-lista-body');
+
+            clientesSubset.forEach((cliente) => {
+                const { mediaG_CPL, mediaG_CPC, mediaM_CPL, mediaM_CPM, estourouMeta } = obterStatusCliente(cliente);
+                const dotClass = estourouMeta ? 'status-dot status-dot--red' : 'status-dot status-dot--green';
+                const statusLabel = estourouMeta ? 'Acima da meta' : 'Dentro da meta';
+                const statusColor = estourouMeta ? 'text-v4-red neon-text' : 'text-green-500';
+
+                const row = document.createElement('tr');
+                row.className = 'lista-row cursor-pointer border-b border-v4-border transition-all';
+                row.onclick = () => abrirModal(cliente);
+                row.innerHTML = `
+                    <td class="px-4 py-4 border-l-2 border-transparent">
+                        <div class="w-2.5 h-2.5 rounded-full ${dotClass}"></div>
+                    </td>
+                    <td class="px-4 py-4 font-display font-bold text-white uppercase tracking-tight">${cliente.nome}</td>
+                    <td class="px-4 py-4 text-right font-bold text-v4-red">${formatarMoeda(cliente.alvoCPL)}</td>
+                    <td class="px-4 py-4 text-right font-medium ${mediaG_CPL > cliente.alvoCPL ? 'text-v4-red' : 'text-white'}">${formatarMoeda(mediaG_CPL)}</td>
+                    <td class="px-4 py-4 text-right font-medium text-v4-text">${formatarMoeda(mediaG_CPC)}</td>
+                    <td class="px-4 py-4 text-right font-medium ${mediaM_CPL > cliente.alvoCPL ? 'text-v4-red' : 'text-white'}">${formatarMoeda(mediaM_CPL)}</td>
+                    <td class="px-4 py-4 text-right font-medium text-v4-text">${formatarMoeda(mediaM_CPM)}</td>
+                    <td class="px-4 py-4 text-center text-[10px] uppercase tracking-widest font-bold ${statusColor}">${statusLabel}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderizarClientes(clientesSubset) {
+            if (modoVisualizacao === 'lista') {
+                renderizarClientesLista(clientesSubset);
+            } else {
+                renderizarClientesCards(clientesSubset);
+            }
+        }
+
+        function abrirModal(cliente) {
+            clienteSelecionado = cliente;
+            document.getElementById('modal-titulo').innerText = cliente.nome;
+            document.getElementById('modal-meta-alvo').innerText = `Meta CPL: R$ ${cliente.alvoCPL.toFixed(2)}`;
+            
+            voltarSelecao();
+            const overlay = document.getElementById('modal-overlay');
+            const container = document.getElementById('modal-container');
+            
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                container.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function fecharModal() {
+            const overlay = document.getElementById('modal-overlay');
+            const container = document.getElementById('modal-container');
+            
+            overlay.classList.add('opacity-0');
+            container.classList.add('scale-95');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+            if (chartInstance) chartInstance.destroy();
+        }
+
+        function voltarSelecao() {
+            document.getElementById('view-grafico').classList.add('hidden');
+            document.getElementById('view-grafico').classList.remove('flex');
+            document.getElementById('view-selecao').classList.remove('hidden');
+            if (chartInstance) chartInstance.destroy();
+        }
+
+        function abrirGrafico(plataforma) {
+            document.getElementById('view-selecao').classList.add('hidden');
+            document.getElementById('view-grafico').classList.remove('hidden');
+            document.getElementById('view-grafico').classList.add('flex');
+
+            const isGoogle = plataforma === 'google';
+            
+            const historicoCPL_Data = periodos.map(p => isGoogle ? clienteSelecionado.historico[p]?.gCPL || 0 : clienteSelecionado.historico[p]?.mCPL || 0);
+            const historicoInflacao_Data = periodos.map(p => isGoogle ? clienteSelecionado.historico[p]?.gCPC || 0 : clienteSelecionado.historico[p]?.mCPM || 0);
+            
+            const mediaCPLAtual = calcularMediaSemana(clienteSelecionado, isGoogle, true);
+            const mediaInflacaoAtual = calcularMediaSemana(clienteSelecionado, isGoogle, false);
+            
+            const nomeInflacao = isGoogle ? 'CPC' : 'CPM';
+            const corPrincipal = isGoogle ? '#FF1A1A' : '#ffffff';
+
+            document.getElementById('badge-plataforma').innerText = isGoogle ? 'Google Ads' : 'Meta Ads';
+            document.getElementById('metrica-cpl').innerHTML = `<span class="text-sm font-sans mr-2">R$</span>${Number(mediaCPLAtual).toFixed(2)}`;
+            document.getElementById('label-inflacao').innerText = `Média ${nomeInflacao} Base`;
+            document.getElementById('metrica-inflacao').innerHTML = `<span class="text-sm font-sans mr-2">R$</span>${Number(mediaInflacaoAtual).toFixed(2)}`;
+
+            const boxDiag = document.getElementById('box-diagnostico');
+            const titleDiag = document.getElementById('titulo-diagnostico');
+            const textDiag = document.getElementById('texto-diagnostico');
+            
+            const estourouMeta = mediaCPLAtual > clienteSelecionado.alvoCPL;
+            const leilaoCaro = mediaInflacaoAtual > (isGoogle ? 1.50 : 35.00);
+
+            if (estourouMeta && leilaoCaro) {
+                boxDiag.className = "mb-6 p-6 flex items-start gap-4 bg-[#2a0505]/80 border border-v4-red/30 border-l-4 border-l-v4-red rounded-sm";
+                titleDiag.className = "font-display font-black uppercase tracking-wider text-sm mb-2 text-v4-red neon-text";
+                textDiag.innerText = `Na média do período, o CPL está estourando (Meta: R$ ${clienteSelecionado.alvoCPL.toFixed(2)}) devido ao alto custo de leilão. Mude o público ou a oferta.`;
+            } else if (estourouMeta && !leilaoCaro) {
+                boxDiag.className = "mb-6 p-6 flex items-start gap-4 bg-[#2a2205]/80 border border-yellow-500/30 border-l-4 border-l-yellow-500 rounded-sm";
+                titleDiag.className = "font-display font-black uppercase tracking-wider text-sm mb-2 text-yellow-500";
+                textDiag.innerText = `O leilão está barato, mas a conta não fecha. O problema principal tem sido a taxa de conversão final na Landing Page.`;
+            } else {
+                boxDiag.className = "mb-6 p-6 flex items-start gap-4 bg-[#0a2a10]/80 border border-green-600/30 border-l-4 border-l-green-600 rounded-sm";
+                titleDiag.className = "font-display font-black uppercase tracking-wider text-sm mb-2 text-green-500";
+                textDiag.innerText = `Cenário geral excelente. CPL e leilão sob controle. Operação liberada para testes de escala de verba.`;
+            }
+
+            const options = {
+                series: [
+                    { name: 'CPL', type: 'line', data: historicoCPL_Data },
+                    { name: nomeInflacao, type: 'line', data: historicoInflacao_Data }
+                ],
+                chart: { height: 300, type: 'line', toolbar: { show: false }, background: 'transparent', fontFamily: 'Inter, sans-serif' },
+                colors: [corPrincipal, '#666666'],
+                stroke: { width: [3, 2], curve: 'smooth' },
+                dataLabels: { enabled: false },
+                xaxis: { 
+                    categories: ['SEM 1', 'SEM 2', 'SEM 3', 'SEM 4', 'SEM 5'], 
+                    labels: { style: { colors: '#8a8a8a', fontWeight: 'bold' } }, 
+                    axisBorder: {show: false}, 
+                    axisTicks: {show: false} 
+                },
+                yaxis: [
+                    { labels: { style: { colors: corPrincipal, fontWeight: 'bold' }, formatter: v => "R$ " + v.toFixed(2) } },
+                    { opposite: true, labels: { style: { colors: '#666666', fontWeight: 'bold' }, formatter: v => "R$ " + v.toFixed(2) } }
+                ],
+                grid: { borderColor: 'rgba(255,30,30,0.12)', strokeDashArray: 4 },
+                theme: { mode: 'dark' },
+                legend: { position: 'top', labels: { colors: '#f5f5f5' } },
+                tooltip: { shared: true, intersect: false, theme: 'dark' }
+            };
+
+            chartInstance = new ApexCharts(document.querySelector("#grafico-container"), options);
+            chartInstance.render();
+        }
+
+        function atualizarLabelsSemanas() {
+            const selector = document.getElementById('config-dia-selector');
+            selector.innerHTML = ''; 
+
+            const hoje = new Date();
+            const ano = hoje.getFullYear();
+            // AQUI FOI ALTERADO: -1 garante que vai sempre puxar do mês passado
+            const mes = hoje.getMonth() - 1; 
+
+            const primeiroDia = new Date(ano, mes, 1);
+
+            const domingoInicial = new Date(primeiroDia);
+            domingoInicial.setDate(primeiroDia.getDate() - primeiroDia.getDay());
+
+            periodos.forEach((sem, index) => {
+                const inicio = new Date(domingoInicial);
+                inicio.setDate(domingoInicial.getDate() + (index * 7)); 
+
+                const fim = new Date(inicio);
+                fim.setDate(inicio.getDate() + 6); 
+
+                const formatarData = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+                const option = document.createElement('option');
+                option.value = sem;
+                option.textContent = `${sem} (${formatarData(inicio)} a ${formatarData(fim)})`;
+                selector.appendChild(option);
+            });
+        }
+
+        atualizarLabelsSemanas();
+        alternarVisualizacao(modoVisualizacao);
+        buscarDados();
+        setInterval(buscarDados, 5000);
+    </script>
+</body>
+</html>
